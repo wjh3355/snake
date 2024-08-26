@@ -1,0 +1,11 @@
+.cell {
+   border: 1px solid #e7e7e7;
+}
+
+.snake {
+   background-color: rgb(0, 0, 0);
+}
+
+.food {
+   background-color: rgb(163, 47, 47);
+}
