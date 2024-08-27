@@ -55,17 +55,17 @@ export default function App() {
       // This changes snakeDir.current whenever another arrow key is pressed, but the game cycle will always use the latest value of snakeDir.current
 
       function handleKeyPress(e: KeyboardEvent) {
-         switch (e.key) {
-            case "ArrowUp":
+         switch (e.key.toLowerCase()) {
+            case "w":
                if (snakeDir.current !== "DOWN") snakeDir.current = "UP";
                break;
-            case "ArrowDown":
+            case "s":
                if (snakeDir.current !== "UP") snakeDir.current = "DOWN";
                break;
-            case "ArrowLeft":
+            case "a":
                if (snakeDir.current !== "RIGHT") snakeDir.current = "LEFT";
                break;
-            case "ArrowRight":
+            case "d":
                if (snakeDir.current !== "LEFT") snakeDir.current = "RIGHT";
                break;
          }
@@ -205,6 +205,7 @@ export default function App() {
          <br/>
          <div>Food is at: [{food.current.join(', ')}]</div>
          <div>Snake length: {snake.length}</div>
+         <div>Use WASD to change direction</div>
       </>
    );
 }
