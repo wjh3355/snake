@@ -1,22 +1,23 @@
 import { useState, useEffect, useRef } from "react";
-import "./App.css";
 import { random } from "lodash";
+import { Grid, Cell } from "./StyledComps";
+import { SnakeArrayType, SnakeDirType, coords } from "./types";
 
-type SnakeDirType = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
+const gridSideLength = 25;
+const cellSideLength = 10;
+
+const initialSnake: SnakeArrayType = [
+   // FIRST VALUE IS HEAD OF SNAKE!!!
+   [7, 25], [6, 25], [5, 25], [4, 25], [3, 25], [2, 25]
+];
+
+const gameTick = 100;
 
 export default function App() {
 
-   const gridSideLength = 25;
-   const cellSideLength = 10;
+   const [snake, setSnake] = useState<SnakeArrayType>(initialSnake);
 
-   const initialSnake = [
-      // FIRST VALUE IS HEAD OF SNAKE!!!
-      [7, 25], [6, 25], [5, 25], [4, 25], [3, 25], [2, 25]
-   ];
-   
-   const [snake, setSnake] = useState<number[][]>(initialSnake);
-
-   const food = useRef<number[]>([]);
+   const food = useRef<coords>([0, 0]);
 
    const snakeDir = useRef<SnakeDirType>('RIGHT');
 
@@ -26,13 +27,14 @@ export default function App() {
    const [score, setScore] = useState<number>(0);
 
    useEffect(() => {
+      // GAME LOOP
+
       let gameInterval: ReturnType<typeof setInterval> | undefined;
   
       if (isGameRunning) {
          gameInterval = setInterval(() => {
-            console.log("SNAKE IS GOING:", snakeDir.current);
-            tryToAdvanceSnake(); // Advance snake every 200ms
-         }, 100);
+            tryToAdvanceSnake();
+         }, gameTick);
       }
   
       return () => {
@@ -64,48 +66,36 @@ export default function App() {
       window.addEventListener("keydown", handleKeyPress);
       return () => window.removeEventListener("keydown", handleKeyPress);
    }, []);
-   
-   const gridStyle = {
-      display: 'grid',
-      gridTemplateColumns: `repeat(${gridSideLength}, 1fr)`,
-      gridTemplateRows: `repeat(${gridSideLength}, 1fr)`,
-      width: `${gridSideLength*cellSideLength}px`,
-      height: `${gridSideLength*cellSideLength}px`,
-      border: '1px solid #e7e7e7',
-      flex: 1
-   };
 
    function generateGrid() {
       const grid = [];
       for (let y = gridSideLength; y > 0; y--) {
          for (let x = 1; x <= gridSideLength; x++) {
    
-            let classToAdd = 'cell';
-            if (snake.some(([snake_x, snake_y]) => snake_x === x && snake_y === y)) {
-               classToAdd += ' snake';
-            };
+
+            const isPartOfSnake = snake.some(([snake_x, snake_y]) => snake_x === x && snake_y === y);
 
             const [food_x, food_y] = food.current;
-            if (food_x === x && food_y === y) {
-               classToAdd += ' food';
-            };
+            const isFood = (food_x === x && food_y === y);
    
-            const el = (
-               <div 
+
+            grid.push(
+               <Cell
                   key={`${x}-${y}`}
-                  className={classToAdd}
-                  data-x={x}
-                  data-y={y}
-               ></div>
+                  snake={isPartOfSnake}
+                  food={isFood}
+               ></Cell>
             );
-            grid.push(el);
          };
       }
       return grid;
    };
 
    function tryToAdvanceSnake() {
+      // Changes 'snake' state.
       setSnake(previousSnake => {
+         console.log("ADVANCING", snakeDir.current);
+         let newSnake: SnakeArrayType;
          let [snakeHead_x, snakeHead_y] = previousSnake[0];
 
          switch (snakeDir.current) {
@@ -123,48 +113,52 @@ export default function App() {
                break;
          };
 
-         const cellToAdvanceInto = [snakeHead_x, snakeHead_y];
+         const cellToAdvanceInto: coords = [snakeHead_x, snakeHead_y];
          const snakeWithoutTailCell = previousSnake.slice(0, -1);
 
          const [food_x, food_y] = food.current;
          if (snakeHead_x === food_x && snakeHead_y === food_y) {
-            // Snake eating food, so return
-            food.current = generateNewFood();
+            // Snake eating food
+            // Length must increase
+            // Another food placed elsewhere
+            newSnake = [cellToAdvanceInto, ...previousSnake];
+            food.current = generateNewFood(newSnake);
             setScore(prev => prev + 1);
             console.log("FOOD EATEN: SCORE INCREASED");
-            return [cellToAdvanceInto, ...previousSnake];
-         };
-   
-         // Check if snake is advancing out of the grid:
-         const isOutOfBounds = (
-            snakeHead_x < 1 || snakeHead_x > gridSideLength
-            || snakeHead_y < 1 || snakeHead_y > gridSideLength
-         );
-
-         // Check if snake is advancing into itself 
-         // (tail doenst count since it moves out of the way anyway):
-         const isCollidingWithSelf = (
-            snakeWithoutTailCell.some(([x, y]) => x === snakeHead_x && y === snakeHead_y)
-         );
-   
-         if (isOutOfBounds || isCollidingWithSelf) {
-            setIsGameRunning(false);
-            setShowGameOverMsg(true);
-            console.log("GAME OVER!");
-            return previousSnake;
+            return newSnake;
          } else {
-            return [cellToAdvanceInto, ...snakeWithoutTailCell];
+            // Check if snake is advancing out of the grid:
+            const isOutOfBounds = (
+               snakeHead_x < 1 || snakeHead_x > gridSideLength
+               || snakeHead_y < 1 || snakeHead_y > gridSideLength
+            );
+            // Check if snake is advancing into itself 
+            // (tail doenst count since it moves out of the way anyway):
+            const isCollidingWithSelf = (
+               snakeWithoutTailCell.some(([x, y]) => x === snakeHead_x && y === snakeHead_y)
+            );
+            if (isOutOfBounds || isCollidingWithSelf) {
+               // Game ends
+               setIsGameRunning(false);
+               setShowGameOverMsg(true);
+               console.log("GAME OVER!");
+               return previousSnake;
+            } else {
+               // Game continues
+               newSnake = [cellToAdvanceInto, ...snakeWithoutTailCell]
+               return newSnake;
+            };
          };
       });
    };
 
-   function generateNewFood() {
-      let food_x = random(1, gridSideLength);
-      let food_y = random(1, gridSideLength);
-      while (snake.some(([x, y]) => x === food_x && y === food_y)) {
+   function generateNewFood(snakeArray: SnakeArrayType): coords {
+      let food_x: number, food_y: number;
+      do {
          food_x = random(1, gridSideLength);
          food_y = random(1, gridSideLength);
-      };
+         console.log("Hi");
+      } while (snakeArray.some(([x, y]) => x === food_x && y === food_y));
       return [food_x, food_y];
    };
 
@@ -174,16 +168,17 @@ export default function App() {
       setSnake(initialSnake);
       snakeDir.current = "RIGHT";
       setScore(0);
-      food.current = generateNewFood();
-   }
+      food.current = generateNewFood(initialSnake);
+   };
 
    return (
       <>
-         <div 
-            style={gridStyle}
-            className="grid">
+         <Grid
+            gridSideLength={gridSideLength}
+            cellSideLength={cellSideLength}
+         >
             {generateGrid()}
-         </div>
+         </Grid>
 
          <div>
             <div
