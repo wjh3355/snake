@@ -1,23 +1,32 @@
 import { useState, useEffect, useRef } from "react";
-import { random } from "lodash";
+import { random, floor } from "lodash";
 import { Grid, Cell } from "./StyledComps";
 import { SnakeArrayType, SnakeDirType, coords } from "./types";
 
-const gridSideLength = 25;
+const gridSideLength = 35
+;
 const cellSideLength = 10;
 
-const initialSnake: SnakeArrayType = [
-   // FIRST VALUE IS HEAD OF SNAKE!!!
-   [7, 25], [6, 25], [5, 25], [4, 25], [3, 25], [2, 25]
-];
+const initialSnakeLength = 5;
+const initialSnake: SnakeArrayType = getInitialSnake();
 
-const gameTick = 100;
+function getInitialSnake() {
+   const arr: SnakeArrayType = [];
+   const y = floor(gridSideLength / 2);
+   for (let x = initialSnakeLength + 1; x > 1; x--) {
+      arr.push([x, y]);
+   };
+   return arr;
+}
+
+
+const gameTick = 120;
 
 export default function App() {
 
    const [snake, setSnake] = useState<SnakeArrayType>(initialSnake);
 
-   const food = useRef<coords>([0, 0]);
+   const food = useRef<coords>([NaN, NaN]);
 
    const snakeDir = useRef<SnakeDirType>('RIGHT');
 
@@ -38,8 +47,7 @@ export default function App() {
       }
   
       return () => {
-        if (gameInterval) clearInterval(gameInterval);
-        console.log("CLEARING GAME INTERVAL");
+         if (gameInterval) clearInterval(gameInterval);
       };
    }, [isGameRunning]);
 
@@ -72,18 +80,16 @@ export default function App() {
       for (let y = gridSideLength; y > 0; y--) {
          for (let x = 1; x <= gridSideLength; x++) {
    
-
             const isPartOfSnake = snake.some(([snake_x, snake_y]) => snake_x === x && snake_y === y);
 
             const [food_x, food_y] = food.current;
             const isFood = (food_x === x && food_y === y);
    
-
             grid.push(
                <Cell
                   key={`${x}-${y}`}
-                  snake={isPartOfSnake}
-                  food={isFood}
+                  $snake={isPartOfSnake}
+                  $food={isFood}
                ></Cell>
             );
          };
@@ -157,7 +163,6 @@ export default function App() {
       do {
          food_x = random(1, gridSideLength);
          food_y = random(1, gridSideLength);
-         console.log("Hi");
       } while (snakeArray.some(([x, y]) => x === food_x && y === food_y));
       return [food_x, food_y];
    };
@@ -174,8 +179,8 @@ export default function App() {
    return (
       <>
          <Grid
-            gridSideLength={gridSideLength}
-            cellSideLength={cellSideLength}
+            $gridSideLength={gridSideLength}
+            $cellSideLength={cellSideLength}
          >
             {generateGrid()}
          </Grid>
@@ -197,6 +202,9 @@ export default function App() {
                <h3 style={{color: "red"}}><strong>GAME OVER</strong></h3>
             }
          </div>
+         <br/>
+         <div>Food is at: [{food.current.join(', ')}]</div>
+         <div>Snake length: {snake.length}</div>
       </>
    );
 }
