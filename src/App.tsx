@@ -2,27 +2,35 @@ import { useState, useEffect, useRef } from "react";
 import { random, floor } from "lodash";
 import { SnakeArrayType, SnakeDirType, coords } from "./types";
 
-const gridSideLength = 49;
-const cellSideLength = 10;
-const initialSnakeLength = 3;
-const gameTick = 100;
-
-const initialSnake: SnakeArrayType = (() => {
-   const arr: SnakeArrayType = [];
-   const y = floor(gridSideLength / 2);
-   for (let x = initialSnakeLength; x > 0; x--) {
-      arr.push([x, y]);
-   };
-   return arr;
-})();
 
 export default function App() {
+   const [gridSideLength, setGridSideLength] = useState<number>(49);
+   const [cellSideLength, setCellSideLength] = useState<number>(10);
+   const [initialSnakeLength, setInitialSnakeLength] = useState<number>(3);
+   const [gameTick, setGameTick] = useState<number>(100);
+   
+   function genInitSnake(gridSize: number, snakeLength: number) {
+      const arr: SnakeArrayType = [];
+      const y = floor(gridSize / 2);
+      for (let x = snakeLength; x > 0; x--) {
+         arr.push([x, y]);
+      };
+      return arr;
+   };
+
+   const [pendGridSideLength, setPendGridSideLength] = useState<number>(49);
+   const [pendCellSideLength, setPendCellSideLength] = useState<number>(10);
+   const [pendInitSnakeLength, setPendInitSnakeLength] = useState<number>(3);
+   const [pendGameTick, setPendGameTick] = useState<number>(100);
+
    const canvasRef = useRef<HTMLCanvasElement | null>(null);
    const snakeDir = useRef<SnakeDirType>("RIGHT");
    const food = useRef<coords>([NaN, NaN]);
    const score = useRef<number>(0);
 
-   const [snake, setSnake] = useState<SnakeArrayType>(initialSnake);
+   const [snake, setSnake] = useState<SnakeArrayType>(
+      () => genInitSnake(gridSideLength, initialSnakeLength)
+   );
    const [isGameRunning, setIsGameRunning] = useState<boolean>(false);
    const [showGameOverMsg, setShowGameOverMsg] = useState<boolean>(false);
 
@@ -142,12 +150,25 @@ export default function App() {
 
    function startNewGame() {
       setShowGameOverMsg(false);
-      setSnake(initialSnake);
+      setSnake(genInitSnake(gridSideLength, initialSnakeLength));
       score.current = 0;
       snakeDir.current = "RIGHT";
-      food.current = generateNewFood(initialSnake);
-
+      food.current = generateNewFood(snake);
+      
       setIsGameRunning(true);
+   };
+   
+   function applySettings() {
+      setGridSideLength(pendGridSideLength);
+      setCellSideLength(pendCellSideLength);
+      setInitialSnakeLength(pendInitSnakeLength);
+      setGameTick(pendGameTick);
+
+      setShowGameOverMsg(false);
+      score.current = 0;
+      snakeDir.current = "RIGHT";
+      food.current = [NaN, NaN];
+      setSnake(genInitSnake(pendGridSideLength, pendInitSnakeLength));
    };
 
    function drawCanvas() {
@@ -203,9 +224,9 @@ export default function App() {
          ></canvas>
 
          <div>
-            <div style={{ fontSize: "15px", marginTop: "10px" }}>
-               <button onClick={startNewGame} disabled={isGameRunning}>
-                  {isGameRunning ? "End Game" : "Start Game"}
+            <div style={{ marginTop: "10px" }}>
+               <button onClick={startNewGame} disabled={isGameRunning} style={{fontSize: "18px", padding:"5px"}}>
+                  Play
                </button>
                &nbsp;&nbsp; Score: {score.current}
             </div>
@@ -214,17 +235,89 @@ export default function App() {
 
             {showGameOverMsg && (
                <h3 style={{ color: "red", margin: "0" }}>
-                  <strong>GAME OVER</strong>
+                  <strong>Game Over!</strong>
                </h3>
             )}
 
             <br />
          </div>
 
-         <div>Food is at: [{food.current.join(", ")}]</div>
+         <div>Food at: [{food.current.join(", ")}]</div>
          <div>Snake length: {snake.length}</div>
-         <div>Snake is facing: {snakeDir.current}</div>
-         <div>(Use <strong>WASD</strong> to change direction)</div>
+         <div>Snake facing: {snakeDir.current}</div>
+         <div>
+            (Use WASD to change direction)
+         </div>
+
+         <br />
+         <br />
+
+
+
+         <h3>Settings:</h3>
+         <div>
+            <label>
+               Grid side length:&nbsp;
+               <input
+                  type="number"
+                  value={pendGridSideLength}
+                  onChange={(e) => setPendGridSideLength(Number(e.target.value))}
+                  min="15"
+                  max="99"
+                  step="1"
+                  disabled={isGameRunning}
+               />
+            </label>
+         </div>
+         <div>
+            <label>
+               Cell side length:&nbsp;
+               <input
+                  type="number"
+                  value={pendCellSideLength}
+                  onChange={(e) => setPendCellSideLength(Number(e.target.value))}
+                  min="5"
+                  max="20"
+                  step="1"
+                  disabled={isGameRunning}
+               />
+            </label>
+         </div>
+         <div>
+            <label>
+               Initial snake length:&nbsp;
+               <input
+                  type="number"
+                  value={pendInitSnakeLength}
+                  onChange={(e) =>
+                     setPendInitSnakeLength(Number(e.target.value))
+                  }
+                  min="3"
+                  max="5"
+                  step="1"
+                  disabled={isGameRunning}
+               />
+            </label>
+         </div>
+         <div>
+            <label>
+               Game tick:&nbsp;
+               <input
+                  type="number"
+                  value={pendGameTick}
+                  onChange={(e) => setPendGameTick(Number(e.target.value))}
+                  min="50"
+                  max="300"
+                  step="10"
+                  disabled={isGameRunning}
+               />
+            </label>
+         </div>
+         <div>
+            <button onClick={applySettings} disabled={isGameRunning}>
+               Apply
+            </button>
+         </div>
       </>
    );
 }
