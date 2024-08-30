@@ -44,6 +44,7 @@ const ArrowButton = styled.button`
 `;
 
 export default function App() {
+   // SNAKE GAME
    const [gridSideLen, setGridSideLen] = useState<number>(49);
    const [cellPxLen, setCellPxLen] = useState<number>(10);
    const [initSnakeLen, setInitSnakeLen] = useState<number>(3);
@@ -244,17 +245,17 @@ export default function App() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // DRAW GRID
-      ctx.strokeStyle = "rgb(220, 220, 220)";
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      for (let i = 0; i <= gridSideLen; i++) {
-         const pos = i * cellPxLen;
-         ctx.moveTo(pos, 0);
-         ctx.lineTo(pos, canvas.height);
-         ctx.moveTo(0, pos);
-         ctx.lineTo(canvas.width, pos);
-      }
-      ctx.stroke();
+      // ctx.strokeStyle = "rgb(220, 220, 220)";
+      // ctx.lineWidth = 0.5;
+      // ctx.beginPath();
+      // for (let i = 0; i <= gridSideLen; i++) {
+      //    const pos = i * cellPxLen;
+      //    ctx.moveTo(pos, 0);
+      //    ctx.lineTo(pos, canvas.height);
+      //    ctx.moveTo(0, pos);
+      //    ctx.lineTo(canvas.width, pos);
+      // }
+      // ctx.stroke();
 
       // DRAW SNAKE
       ctx.fillStyle = "black";
@@ -283,7 +284,7 @@ export default function App() {
          <canvas
             width={gridSideLen * cellPxLen}
             height={gridSideLen * cellPxLen}
-            style={{ border: "1px solid black" }}
+            style={{ border: "1px solid black", margin: "15px" }}
             ref={canvasRef}
          ></canvas>
 
@@ -292,22 +293,30 @@ export default function App() {
             <ArrowButton
                onClick={() => handleArrowButtonPress("UP")}
                disabled={!isGameRunning}
-            >▲</ArrowButton>
+            >
+               ▲
+            </ArrowButton>
             <div></div>
             <ArrowButton
                onClick={() => handleArrowButtonPress("LEFT")}
                disabled={!isGameRunning}
-            >◀</ArrowButton>
+            >
+               ◀
+            </ArrowButton>
             <div></div>
             <ArrowButton
                onClick={() => handleArrowButtonPress("RIGHT")}
                disabled={!isGameRunning}
-            >▶</ArrowButton>
+            >
+               ▶
+            </ArrowButton>
             <div></div>
             <ArrowButton
                onClick={() => handleArrowButtonPress("DOWN")}
                disabled={!isGameRunning}
-            >▼</ArrowButton>
+            >
+               ▼
+            </ArrowButton>
             <div></div>
          </ButtonContainer>
 
@@ -332,87 +341,113 @@ export default function App() {
             )}
          </div>
 
-         <h3 style={{clear: 'both'}}>Settings:</h3>
-         <div>
-            <label>
-               Grid side length:&nbsp;
-               <input
-                  type="number"
-                  value={pendingSettings.pendGridSideLen}
-                  onChange={e => setPendingSettings(prev => {
-                     return {...prev, pendGridSideLen: Number(e.target.value)}
-                  })}
-                  min="15"
-                  max="99"
-                  step="1"
-                  disabled={isGameRunning}
-               />
-            </label>
-         </div>
-         <div>
-            <label>
-               Cell side length:&nbsp;
-               <input
-                  type="number"
-                  value={pendingSettings.pendCellPxLen}
-                  onChange={e => setPendingSettings(prev => {
-                     return {...prev, pendCellPxLen: Number(e.target.value)}
-                  })}
-                  min="5"
-                  max="20"
-                  step="1"
-                  disabled={isGameRunning}
-               />
-            </label>
-         </div>
-         <div>
-            <label>
-               Initial snake length:&nbsp;
-               <input
-                  type="number"
-                  value={pendingSettings.pendInitSnakeLen}
-                  onChange={e => setPendingSettings(prev => {
-                     return {...prev, pendInitSnakeLen: Number(e.target.value)}
-                  })}
-                  min="3"
-                  max="5"
-                  step="1"
-                  disabled={isGameRunning}
-               />
-            </label>
-         </div>
-         <div>
-            <label>
-               Game tick:&nbsp;
-               <input
-                  type="number"
-                  value={pendingSettings.pendGameTick}
-                  onChange={e => setPendingSettings(prev => {
-                     return {...prev, pendGameTick: Number(e.target.value)}
-                  })}
-                  min="50"
-                  max="500"
-                  step="50"
-                  disabled={isGameRunning}
-               />
-            </label>
-         </div>
-         <div style={{marginTop: "10px"}}>
-            <button onClick={applySettings} disabled={isGameRunning}>
-               Apply
-            </button>
-            &nbsp;&nbsp;
-            <button onClick={() => setPendingSettings(defaultSettings)} disabled={isGameRunning}>
-               Reset
-            </button>
-         </div>
-         
-         <br/>
+         <h3 style={{ clear: "both" }}>Settings:</h3>
 
-         <div>Food at: [{food.current.join(", ")}]</div>
-         <div>Snake length: {snake.length}</div>
-         <div>Snake facing: {snakeDir.current}</div>
-         <div>(On computer, use WASD to change direction)</div>
+         <table>
+            <tr>
+               <td>Grid side length:</td>
+               <td style={{textAlign: 'center', width: '30px'}}>{pendingSettings.pendGridSideLen}</td>
+               <td>
+                  <input
+                     type="range"
+                     onChange={e => setPendingSettings(prev => {
+                        return {...prev, pendGridSideLen: Number(e.target.value)}
+                     })}
+                     min="15"
+                     max="99"
+                     step="1"
+                     disabled={isGameRunning}
+                     value={pendingSettings.pendGridSideLen}
+                  />
+               </td>
+            </tr>
+            <tr>
+               <td>Cell side length:</td>
+               <td style={{textAlign: 'center'}}>{pendingSettings.pendCellPxLen}</td>
+               <td>
+                  <input
+                     type="range"
+                     onChange={e => setPendingSettings(prev => {
+                        return {...prev, pendCellPxLen: Number(e.target.value)}
+                     })}
+                     min="5"
+                     max="20"
+                     step="1"
+                     disabled={isGameRunning}
+                     value={pendingSettings.pendCellPxLen}
+                  />
+               </td>
+            </tr>
+            <tr>
+               <td>Initial snake length:</td>
+               <td style={{textAlign: 'center'}}>{pendingSettings.pendInitSnakeLen}</td>
+               <td>
+                  <input
+                     type="range"
+                     onChange={e => setPendingSettings(prev => {
+                        return {...prev, pendInitSnakeLen: Number(e.target.value)}
+                     })}
+                     min="3"
+                     max="5"
+                     step="1"
+                     disabled={isGameRunning}
+                     value={pendingSettings.pendInitSnakeLen}
+                  />
+               </td>
+            </tr>
+            <tr>
+               <td>Game tick:</td>
+               <td style={{textAlign: 'center'}}>{pendingSettings.pendGameTick}</td>
+               <td>
+                  <input
+                     type="range"
+                     onChange={e => setPendingSettings(prev => {
+                        return {...prev, pendGameTick: Number(e.target.value)}
+                     })}
+                     min="50"
+                     max="500"
+                     step="50"
+                     disabled={isGameRunning}
+                     value={pendingSettings.pendGameTick}
+                  />
+               </td>
+            </tr>
+            <tr>
+               <td>
+                  <button onClick={applySettings} disabled={isGameRunning}>
+                     Apply
+                  </button>
+                  &nbsp;&nbsp;
+                  <button
+                     onClick={() => setPendingSettings(defaultSettings)}
+                     disabled={isGameRunning}
+                  >
+                     Reset
+                  </button>
+               </td>
+            </tr>
+         </table>
+
+         <br />
+
+         <table>
+            <tr>
+               <td>Food at:</td>
+               <td>[{food.current.join(", ")}]</td>
+            </tr>
+            <tr>
+               <td>Snake length:</td>
+               <td>{snake.length}</td>
+            </tr>
+            <tr>
+               <td>Snake facing:</td>
+               <td>{snakeDir.current}</td>
+            </tr>
+         </table>
+
+         <br />
+
+         <div>On computer, use WASD to change direction</div>
       </>
    );
 }
